@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Managing Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-dark: #1a2a44;
+            --primary-light: #ffffff;
+            --accent: #3b5998;
+            --text: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--primary-light);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header with user info */
+        .header {
+            background: var(--primary-dark);
+            color: var(--primary-light);
+            padding: 10px 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header.show {
+            display: flex;
+        }
+
+        .user-info {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-toggle {
+            display: none;
+            font-size: 18px;
+            background: transparent;
+            border: none;
+            color: var(--primary-light);
+            cursor: pointer;
+            padding: 6px;
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .nav-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Desktop sidebar */
+        .sidebar {
+            background: var(--primary-dark);
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding: 20px 0;
+            display: none;
+            z-index: 999;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.show {
+            display: block;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin: 5px 0;
+        }
+
+        .sidebar a {
+            color: var(--primary-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar a i {
+            font-size: 16px;
+            width: 20px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: var(--accent);
+            border-left-color: var(--primary-light);
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: 0;
+            padding-top: 60px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.with-sidebar {
+            margin-left: 250px;
+        }
+
+        .section {
+            background: var(--primary-light);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            text-align: center;
+            margin: 20px 0 30px;
+        }
+
+        h2, h3 {
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            display: block;
+            margin: 10px auto;
+            padding: 12px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        
+        .login-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin: 10px auto;
+        }
+
+        .login-buttons button {
+            margin: 0;
+            flex: 1;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: var(--primary-light);
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #2a4373;
+        }
+
+        #reset-elections {
+            background-color: #dc3545;
+        }
+        #reset-elections:hover {
+            background-color: #c82333;
+        }
+
+        .candidate, .voter-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+
+        .candidate img {
+            max-width: 80px;
+            max-height: 80px;
+            margin-right: 20px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        
+        .voter-item div {
+            flex-grow: 1;
+            padding-left: 10px;
+        }
+
+        .error, .success {
+            color: #dc3545;
+            text-align: center;
+            margin: 10px 0;
+            opacity: 0;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+
+        /* Mobile overlay for sidebar */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                width: 280px;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content.with-sidebar {
+                margin-left: 0;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .candidate {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .candidate img {
+                margin: 0 0 15px 0;
+            }
+
+            .voter-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .voter-item div {
+                padding-left: 0;
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            input, button {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .login-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header" id="header">
+        <button class="nav-toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+        <div class="user-info">
+            <i class="fas fa-user-shield"></i>
+            <span id="director-name">Director1</span>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    
+    <nav class="sidebar" id="sidebar">
+        <ul>
+            <li><a href="#" class="tab-link active" data-tab="home-section"><i class="fas fa-home"></i> Home</a></li>
+            <li><a href="#" class="tab-link" data-tab="deadline-section"><i class="fas fa-clock"></i> Deadline</a></li>
+            <li><a href="#" class="tab-link" data-tab="candidates-section"><i class="fas fa-users"></i> Candidates</a></li>
+            <li><a href="#" class="tab-link" data-tab="voters-section"><i class="fas fa-user-plus"></i> Voters</a></li>
+            <li><a href="#" class="tab-link" data-tab="admins-section"><i class="fas fa-user-shield"></i> Admins</a></li>
+            <li><a href="#" class="tab-link" data-tab="results-section"><i class="fas fa-chart-bar"></i> Results</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content" id="main-content">
+        <div class="container">
+            <h1>Managing Portal</h1>
+            
+            <div id="login-section" class="section">
+                <h2>Election Director Login</h2>
+                <input type="text" id="director-username" placeholder="Username">
+                <div style="position: relative; max-width: 400px; margin: 10px auto;">
+                    <input type="password" id="director-password" placeholder="Password" style="margin: 0; padding-right: 45px;">
+                    <span id="toggle-director-password" style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #666;"><i class="fas fa-eye"></i></span>
+                </div>
+                <div class="login-buttons">
+                    <button onclick="loginDirector()">Login</button>
+                </div>
+                <p id="login-error" class="error"></p>
+            </div>
+
+            <div id="home-section" class="section" style="display: none;">
+                <h2>Election Dashboard</h2>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--accent);">
+                    <h3 style="color: var(--primary-dark); margin-bottom: 15px; text-align: left;">
+                        <i class="fas fa-info-circle"></i> Election Status
+                    </h3>
+                    <div id="election-status" style="font-size: 16px; line-height: 1.8;">
+                        <p id="status-text" style="margin-bottom: 10px;"><strong>Status:</strong> <span id="status-indicator">Preparing</span></p>
+                        <p id="deadline-text" style="margin-bottom: 10px;"><strong>Deadline:</strong> <span id="current-deadline">Not set</span></p>
+                        <p id="time-remaining" style="margin-bottom: 0;"><strong>Time Remaining:</strong> <span id="countdown">--</span></p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-users" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <h4 style="margin-bottom: 5px;">Candidates</h4>
+                        <p id="candidates-count" style="font-size: 24px; font-weight: bold; margin: 0;">0</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-user-check" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <h4 style="margin-bottom: 5px;">Registered Voters</h4>
+                        <p id="registered-voters-count" style="font-size: 24px; font-weight: bold; margin: 0;">0</p>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 8px; text-align: center;">
+                        <i class="fas fa-vote-yea" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <h4 style="margin-bottom: 5px;">Votes Cast</h4>
+                        <p id="votes-cast-count" style="font-size: 24px; font-weight: bold; margin: 0;">0</p>
+                    </div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button onclick="refreshDashboard()" style="background: var(--accent); margin: 0 auto;">
+                        <i class="fas fa-sync-alt"></i> Refresh Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <div id="deadline-section" class="section" style="display: none;">
+                <h2>Set Voting Deadline</h2>
+                <input type="datetime-local" id="voting-deadline">
+                <button onclick="setDeadline()">Set Deadline</button>
+                <p id="deadline-status" class="error"></p>
+                <hr style="margin: 20px auto; max-width: 400px; border: 1px solid #eee;">
+                <button id="reset-elections" onclick="resetElections()">Reset Elections</button>
+            </div>
+
+            <div id="candidates-section" class="section" style="display: none;">
+                <h2>Manage Candidates</h2>
+                <h3>Add Candidate</h3>
+                <input type="text" id="candidate-name" placeholder="Candidate Name">
+                <input type="text" id="candidate-position" placeholder="Position (e.g., President)">
+                <input type="file" id="candidate-photo" accept="image/*">
+                <button onclick="addCandidate()">Add Candidate</button>
+                <p id="candidate-error" class="error"></p>
+                <h3>Candidates List</h3>
+                <div id="candidates-list" class="list-container"></div>
+            </div>
+
+            <div id="voters-section" class="section" style="display: none;">
+                <h2>Manage Online Voters</h2>
+                <h3>Add Online Voter</h3>
+                <input type="text" id="voter-username" placeholder="Voter Username">
+                <input type="password" id="voter-password" placeholder="Voter Password">
+                <button onclick="addVoter()">Add Voter</button>
+                <p id="voter-error" class="error"></p>
+                <h3>Registered Voters</h3>
+                <div id="voters-list" class="list-container"></div>
+            </div>
+            
+            <div id="admins-section" class="section" style="display: none;">
+                <h2>Manage Admins</h2>
+                <h3>Add New Admin</h3>
+                <input type="text" id="new-admin-username" placeholder="New Admin Username">
+                <div style="position: relative; max-width: 400px; margin: 10px auto;">
+                    <input type="password" id="new-admin-password" placeholder="New Admin Password" style="margin: 0; padding-right: 45px;">
+                    <span id="toggle-new-admin-password" style="position: absolute; right: 12px; top: 14px; cursor: pointer; color: #666;"><i class="fas fa-eye"></i></span>
+                </div>
+                <button onclick="addAdmin()">Add Admin</button>
+                <p id="admin-add-status" class="error"></p>
+                <h3>Registered Admins</h3>
+                <div id="admins-list" class="list-container"></div>
+            </div>
+
+            <div id="results-section" class="section" style="display: none;">
+                <h2>Voting Statistics</h2>
+                <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">Total Voters: <span id="total-voters">0</span></p>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const navToggle = document.getElementById('nav-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const header = document.getElementById('header');
+        const mainContent = document.getElementById('main-content');
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const sections = document.querySelectorAll('.section');
+
+        let currentUser = null;
+
+        // Storage keys with unique prefix to avoid conflicts
+        const STORAGE_KEYS = {
+            directors: 'managingPortal_electionDirectors',
+            voters: 'managingPortal_onlineVoters', // list of registered online voters
+            candidates: 'managingPortal_candidates',
+            deadline: 'managingPortal_votingDeadline',
+            voterVotes: 'managingPortal_voterVotes', // online portal votes
+            physicalVotes: 'managingPortal_physicalVotes' // admin-led portal votes
+        };
+
+        // Initialize credentials if they don't exist
+        if (!localStorage.getItem(STORAGE_KEYS.directors)) {
+            localStorage.setItem(STORAGE_KEYS.directors, JSON.stringify([
+                { username: 'newuser', password: 'newpass' }
+            ]));
+        }
+
+        if (!localStorage.getItem(STORAGE_KEYS.voters)) {
+            localStorage.setItem(STORAGE_KEYS.voters, '[]');
+        }
+
+        if (!localStorage.getItem(STORAGE_KEYS.voterVotes)) {
+            localStorage.setItem(STORAGE_KEYS.voterVotes, '[]');
+        }
+        
+        if (!localStorage.getItem(STORAGE_KEYS.physicalVotes)) {
+            localStorage.setItem(STORAGE_KEYS.physicalVotes, '[]');
+        }
+
+        // Mobile navigation toggle
+        navToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+            sidebarOverlay.classList.toggle('show');
+        });
+
+        // Close sidebar when clicking overlay
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            sidebarOverlay.classList.remove('show');
+        });
+
+        // Tab navigation
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = link.getAttribute('data-tab');
+                
+                // Hide all sections
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Remove active class from all tabs
+                tabLinks.forEach(l => l.classList.remove('active'));
+                
+                // Show selected section and activate tab
+                document.getElementById(tabId).style.display = 'block';
+                link.classList.add('active');
+                
+                // Close sidebar on mobile
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+            });
+        });
+
+        // Authentication function
+        function loginDirector() {
+            const username = document.getElementById('director-username').value.trim();
+            const password = document.getElementById('director-password').value.trim();
+            const loginError = document.getElementById('login-error');
+
+            if (!username || !password) {
+                loginError.textContent = 'Please enter both username and password';
+                loginError.style.opacity = '1';
+                return;
+            }
+
+            const directors = JSON.parse(localStorage.getItem(STORAGE_KEYS.directors) || '[]');
+            const director = directors.find(d => d.username === username && d.password === password);
+
+            if (director) {
+                currentUser = director;
+                
+                // Show authenticated interface
+                document.getElementById('login-section').style.display = 'none';
+                header.classList.add('show');
+                sidebar.classList.add('show');
+                mainContent.classList.add('with-sidebar');
+                document.getElementById('director-name').textContent = username;
+                
+                // Show first tab content
+                document.getElementById('home-section').style.display = 'block';
+                
+                // Update active tab
+                document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('active'));
+                document.querySelector('.tab-link[data-tab="home-section"]').classList.add('active');
+                
+                // Load data
+                loadCandidates();
+                loadVoters();
+                loadAdmins();
+                updateStats();
+                loadCurrentDeadline();
+                refreshDashboard();
+                
+                loginError.style.opacity = '0';
+            } else {
+                loginError.textContent = 'Invalid username or password';
+                loginError.style.opacity = '1';
+            }
+        }
+
+        // Load current deadline
+        function loadCurrentDeadline() {
+            const deadline = localStorage.getItem(STORAGE_KEYS.deadline);
+            const statusElement = document.getElementById('deadline-status');
+            if (deadline) {
+                document.getElementById('voting-deadline').value = deadline;
+                statusElement.textContent = `Current deadline: ${new Date(deadline).toLocaleString()}`;
+                statusElement.className = 'success';
+                statusElement.style.opacity = '1';
+            } else {
+                 statusElement.textContent = 'No deadline currently set.';
+                 statusElement.className = 'error';
+                 statusElement.style.opacity = '1';
+            }
+        }
+
+        // Set deadline function
+        function setDeadline() {
+            const deadline = document.getElementById('voting-deadline').value;
+            const statusElement = document.getElementById('deadline-status');
+            
+            if (deadline) {
+                localStorage.setItem(STORAGE_KEYS.deadline, deadline);
+                statusElement.textContent = `Deadline set to: ${new Date(deadline).toLocaleString()}`;
+                statusElement.className = 'success';
+                statusElement.style.opacity = '1';
+                refreshDashboard(); // Update dashboard when deadline changes
+            } else {
+                statusElement.textContent = 'Please select a valid date and time';
+                statusElement.className = 'error';
+                statusElement.style.opacity = '1';
+            }
+        }
+
+        // Refresh dashboard function
+        function refreshDashboard() {
+            const deadline = localStorage.getItem(STORAGE_KEYS.deadline);
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const onlineVoters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const onlineVotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.voterVotes) || '[]');
+            const physicalVotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.physicalVotes) || '[]');
+            const allVotes = [...onlineVotes, ...physicalVotes];
+
+            // Update counts
+            document.getElementById('candidates-count').textContent = candidates.length;
+            document.getElementById('registered-voters-count').textContent = onlineVoters.length + physicalVotes.length;
+            document.getElementById('votes-cast-count').textContent = allVotes.length;
+
+            // Update election status
+            const statusIndicator = document.getElementById('status-indicator');
+            const currentDeadlineSpan = document.getElementById('current-deadline');
+            const countdownSpan = document.getElementById('countdown');
+
+            if (deadline) {
+                const deadlineDate = new Date(deadline);
+                const now = new Date();
+                currentDeadlineSpan.textContent = deadlineDate.toLocaleString();
+
+                if (now < deadlineDate) {
+                    statusIndicator.textContent = 'Active';
+                    statusIndicator.style.color = '#28a745';
+                    statusIndicator.innerHTML = '<i class="fas fa-play-circle"></i> Active';
+                    
+                    // Calculate time remaining
+                    const timeDiff = deadlineDate - now;
+                    const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    if (days > 0) {
+                        countdownSpan.textContent = `${days}d ${hours}h ${minutes}m`;
+                    } else if (hours > 0) {
+                        countdownSpan.textContent = `${hours}h ${minutes}m`;
+                    } else {
+                        countdownSpan.textContent = `${minutes}m`;
+                    }
+                } else {
+                    statusIndicator.textContent = 'Ended';
+                    statusIndicator.style.color = '#dc3545';
+                    statusIndicator.innerHTML = '<i class="fas fa-stop-circle"></i> Ended';
+                    countdownSpan.textContent = 'Election has ended';
+                }
+            } else {
+                statusIndicator.textContent = 'Preparing';
+                statusIndicator.style.color = '#ffc107';
+                statusIndicator.innerHTML = '<i class="fas fa-clock"></i> Preparing';
+                currentDeadlineSpan.textContent = 'Not set';
+                countdownSpan.textContent = 'Set deadline to activate';
+            }
+        }
+
+        // Reset elections function
+        function resetElections() {
+            if (confirm("Are you sure you want to reset all election data? This cannot be undone.")) {
+                localStorage.removeItem(STORAGE_KEYS.candidates);
+                localStorage.removeItem(STORAGE_KEYS.voters);
+                localStorage.removeItem(STORAGE_KEYS.deadline);
+                localStorage.removeItem(STORAGE_KEYS.voterVotes);
+                localStorage.removeItem(STORAGE_KEYS.physicalVotes);
+                
+                // Reset interface
+                loadCandidates();
+                loadVoters();
+                loadAdmins();
+                updateStats();
+                document.getElementById('voting-deadline').value = '';
+                document.getElementById('deadline-status').textContent = '';
+                refreshDashboard(); // Update dashboard after reset
+                
+                alert('Election data has been reset successfully!');
+            }
+        }
+
+        // Add candidate function
+        function addCandidate() {
+            const name = document.getElementById('candidate-name').value.trim();
+            const position = document.getElementById('candidate-position').value.trim();
+            const photoInput = document.getElementById('candidate-photo');
+            const candidateError = document.getElementById('candidate-error');
+
+            if (!name || !position) {
+                candidateError.textContent = 'Please provide name and position';
+                candidateError.className = 'error';
+                candidateError.style.opacity = '1';
+                return;
+            }
+
+            if (!photoInput.files[0]) {
+                candidateError.textContent = 'Please select a photo';
+                candidateError.className = 'error';
+                candidateError.style.opacity = '1';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+                candidates.push({ 
+                    id: Date.now(), 
+                    name, 
+                    position, 
+                    photo: e.target.result 
+                });
+                localStorage.setItem(STORAGE_KEYS.candidates, JSON.stringify(candidates));
+                
+                candidateError.textContent = 'Candidate added successfully!';
+                candidateError.className = 'success';
+                candidateError.style.opacity = '1';
+                
+                // Clear form
+                document.getElementById('candidate-name').value = '';
+                document.getElementById('candidate-position').value = '';
+                photoInput.value = '';
+                
+                loadCandidates();
+                updateStats();
+                refreshDashboard(); // Update dashboard counts
+            };
+            reader.readAsDataURL(photoInput.files[0]);
+        }
+
+        // Load candidates function
+        function loadCandidates() {
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const candidatesList = document.getElementById('candidates-list');
+            
+            if (candidates.length === 0) {
+                candidatesList.innerHTML = '<p style="text-align: center; color: #666;">No candidates added yet.</p>';
+                return;
+            }
+            
+            candidatesList.innerHTML = '';
+            candidates.forEach(candidate => {
+                const candidateDiv = document.createElement('div');
+                candidateDiv.className = 'candidate';
+                candidateDiv.innerHTML = `
+                    <img src="${candidate.photo}" alt="${candidate.name}">
+                    <div>
+                        <p><strong>Name:</strong> ${candidate.name}</p>
+                        <p><strong>Position:</strong> ${candidate.position}</p>
+                    </div>
+                `;
+                candidatesList.appendChild(candidateDiv);
+            });
+        }
+        
+        // Add voter function
+        function addVoter() {
+            const username = document.getElementById('voter-username').value.trim();
+            const password = document.getElementById('voter-password').value.trim();
+            const voterError = document.getElementById('voter-error');
+
+            if (!username || !password) {
+                voterError.textContent = 'Please provide username and password';
+                voterError.className = 'error';
+                voterError.style.opacity = '1';
+                return;
+            }
+
+            const voters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const existingVoter = voters.find(v => v.username === username);
+            
+            if (existingVoter) {
+                voterError.textContent = 'Username already exists';
+                voterError.className = 'error';
+                voterError.style.opacity = '1';
+                return;
+            }
+
+            voters.push({ 
+                username, 
+                password, 
+                hasVoted: false,
+                registeredAt: new Date().toISOString()
+            });
+            localStorage.setItem(STORAGE_KEYS.voters, JSON.stringify(voters));
+            
+            voterError.textContent = 'Voter added successfully!';
+            voterError.className = 'success';
+            voterError.style.opacity = '1';
+            
+            // Clear form
+            document.getElementById('voter-username').value = '';
+            document.getElementById('voter-password').value = '';
+            
+            loadVoters();
+            refreshDashboard(); // Update dashboard counts
+        }
+
+        // Load voters function
+        function loadVoters() {
+            const voters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const votersList = document.getElementById('voters-list');
+            
+            if (voters.length === 0) {
+                votersList.innerHTML = '<p style="text-align: center; color: #666;">No voters registered yet.</p>';
+                return;
+            }
+
+            votersList.innerHTML = '';
+            voters.forEach(voter => {
+                const voterItem = document.createElement('div');
+                voterItem.className = 'voter-item';
+                const statusColor = voter.hasVoted ? '#28a745' : '#ffc107';
+                voterItem.innerHTML = `
+                    <div>
+                        <p><strong>Username:</strong> ${voter.username}</p>
+                        <p><strong>Status:</strong> <span style="color: ${statusColor};">${voter.hasVoted ? 'Voted' : 'Pending'}</span></p>
+                    </div>
+                `;
+                votersList.appendChild(voterItem);
+            });
+        }
+        
+        // Function to add a new admin
+        function addAdmin() {
+            const username = document.getElementById('new-admin-username').value.trim();
+            const password = document.getElementById('new-admin-password').value.trim();
+            const statusElement = document.getElementById('admin-add-status');
+
+            if (!username || !password) {
+                statusElement.textContent = 'Please enter both username and password.';
+                statusElement.className = 'error';
+                statusElement.style.opacity = '1';
+                return;
+            }
+
+            const directors = JSON.parse(localStorage.getItem(STORAGE_KEYS.directors) || '[]');
+            if (directors.some(d => d.username === username)) {
+                statusElement.textContent = 'Username already exists.';
+                statusElement.className = 'error';
+                statusElement.style.opacity = '1';
+                return;
+            }
+
+            directors.push({ username, password });
+            localStorage.setItem(STORAGE_KEYS.directors, JSON.stringify(directors));
+
+            statusElement.textContent = 'Admin added successfully!';
+            statusElement.className = 'success';
+            statusElement.style.opacity = '1';
+            
+            // Clear the form
+            document.getElementById('new-admin-username').value = '';
+            document.getElementById('new-admin-password').value = '';
+            
+            loadAdmins();
+        }
+
+        // Function to load the list of admins
+        function loadAdmins() {
+            const admins = JSON.parse(localStorage.getItem(STORAGE_KEYS.directors) || '[]');
+            const adminsList = document.getElementById('admins-list');
+
+            if (admins.length === 0) {
+                adminsList.innerHTML = '<p style="text-align: center; color: #666;">No admins added yet.</p>';
+                return;
+            }
+
+            adminsList.innerHTML = '';
+            admins.forEach(admin => {
+                const adminDiv = document.createElement('div');
+                adminDiv.className = 'voter-item'; // Re-use existing class for styling
+                adminDiv.innerHTML = `<div><p><strong>Username:</strong> ${admin.username}</p></div>`;
+                adminsList.appendChild(adminDiv);
+            });
+        }
+        
+        // Update statistics function (COMBINED VOTES)
+        function updateStats() {
+            const onlineVotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.voterVotes) || '[]');
+            const physicalVotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.physicalVotes) || '[]');
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const voters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const registeredVoters = voters.length + physicalVotes.length; // Count registered online voters + physical voters
+            
+            const resultsDiv = document.getElementById('results');
+            
+            // Combine all votes from both sources
+            const allVotes = [...onlineVotes, ...physicalVotes];
+
+            document.getElementById('total-voters').textContent = registeredVoters;
+
+            if (candidates.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #666;">No candidates available for results.</p>';
+                return;
+            }
+
+            const positions = [...new Set(candidates.map(c => c.position))];
+            resultsDiv.innerHTML = '';
+
+            positions.forEach(position => {
+                const positionDiv = document.createElement('div');
+                positionDiv.style.marginBottom = '30px';
+                positionDiv.innerHTML = `<h3 style="margin-bottom: 15px;">${position}</h3>`;
+                const voteCounts = {};
+
+                candidates
+                    .filter(c => c.position === position)
+                    .forEach(c => { voteCounts[c.name] = 0; });
+
+                allVotes.forEach(voter => {
+                    if (voter.votes && voter.votes[position]) {
+                        voteCounts[voter.votes[position]] = (voteCounts[voter.votes[position]] || 0) + 1;
+                    }
+                });
+
+                for (const candidate in voteCounts) {
+                    const percentage = allVotes.length > 0 ? ((voteCounts[candidate] / allVotes.length) * 100).toFixed(1) : 0;
+                    positionDiv.innerHTML += `<p style="margin: 5px 0; padding: 5px; background: rgba(59, 89, 152, 0.1); border-radius: 4px;">${candidate}: ${voteCounts[candidate]} votes (${percentage}%)</p>`;
+                }
+
+                resultsDiv.appendChild(positionDiv);
+            });
+        }
+
+        // Password toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('director-password');
+            const togglePassword = document.getElementById('toggle-director-password');
+            
+            const newAdminPasswordInput = document.getElementById('new-admin-password');
+            const toggleNewAdminPassword = document.getElementById('toggle-new-admin-password');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                });
+            }
+            
+            if (toggleNewAdminPassword && newAdminPasswordInput) {
+                toggleNewAdminPassword.addEventListener('click', function() {
+                    const type = newAdminPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    newAdminPasswordInput.setAttribute('type', type);
+                    this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+                });
+            }
+
+            // Allow Enter key to login
+            document.getElementById('director-username').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginDirector();
+                }
+            });
+
+            document.getElementById('director-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginDirector();
+                }
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+                if (currentUser) {
+                    sidebar.classList.add('show');
+                    mainContent.classList.add('with-sidebar');
+                }
+            } else {
+                if (currentUser) {
+                    mainContent.classList.remove('with-sidebar');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

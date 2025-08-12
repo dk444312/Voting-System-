@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #1a2a44;
+            --primary-light: #ffffff;
+            --accent: #3b5998;
+            --text: #333333;
+            --gradient: linear-gradient(135deg, #3b5998, #1a2a44);
+            --dark-bg: #2c3e50;
+            --dark-text: #ecf0f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: var(--gradient);
+            color: var(--text);
+            line-height: 1.6;
+            padding-top: 70px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        body.dark-mode {
+            background: var(--dark-bg);
+            color: var(--dark-text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation Menu */
+        .nav-toggle {
+            display: none;
+            font-size: 20px;
+            background: var(--primary-light);
+            border: none;
+            color: var(--primary-dark);
+            cursor: pointer;
+            padding: 8px;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            border-radius: 8px;
+            transition: background 0.3s;
+            width: 40px;
+            height: 40px;
+        }
+
+        .nav-menu {
+            display: none;
+            background: var(--primary-dark);
+            padding: 15px;
+            border-radius: 0 0 12px 12px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .nav-menu li {
+            margin: 0;
+        }
+
+        .nav-menu a {
+            color: var(--primary-light);
+            text-decoration: none;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 8px;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-menu a i {
+            font-size: 16px;
+        }
+
+        .section {
+            background: var(--primary-light);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        body.dark-mode .section {
+            background: #34495e;
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            text-align: center;
+            margin: 30px 0;
+            font-weight: 600;
+        }
+
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode h3 {
+            color: var(--dark-text);
+        }
+
+        h2, h3 {
+            color: var(--primary-dark);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            display: block;
+            margin: 15px auto;
+            padding: 14px;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        input:focus, button:focus {
+            outline: none;
+            border-color: var(--accent);
+            transform: scale(1.02);
+        }
+
+        button {
+            background: var(--gradient);
+            color: var(--primary-light);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #2a4373, #1a2a44);
+            transform: translateY(-2px);
+        }
+
+        .candidate {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            background: #f9f9f9;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        body.dark-mode .candidate {
+            background: #2c3e50;
+            border-color: #4a6078;
+        }
+
+        .candidate:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .candidate img {
+            max-width: 100px;
+            max-height: 100px;
+            margin-right: 20px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .error, .success {
+            text-align: center;
+            margin: 10px 0;
+            opacity: 0;
+            animation: slideIn 0.5s forwards;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 450px;
+            margin: 20px auto;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 20px;
+            background: var(--gradient);
+            transition: width 0.3s;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1002;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--primary-light);
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            animation: fadeIn 0.3s;
+        }
+
+        body.dark-mode .modal-content {
+            background: #34495e;
+        }
+
+        /* Voter login section */
+        .voter-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .voter-login h2 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .voter-login input {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #333;
+        }
+
+        .voter-login button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .voter-login button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: var(--primary-dark);
+                padding-top: 60px;
+                transition: transform 0.3s ease-in-out;
+                transform: translateY(-100%);
+            }
+
+            .nav-menu.active {
+                display: block;
+                transform: translateY(0);
+            }
+
+            .nav-menu ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-menu li {
+                margin: 15px 0;
+            }
+
+            .nav-menu a {
+                font-size: 18px;
+                padding: 15px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .candidate {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .candidate img {
+                margin: 0 0 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="nav-toggle" style="display: none;"><i class="fas fa-bars"></i></button>
+    <nav class="nav-menu">
+        <ul>
+            <li><a href="#" class="tab-link active" data-tab="admin-login-section"><i class="fas fa-user-shield"></i> Admin Login</a></li>
+            <li><a href="#" class="tab-link" data-tab="voter-section"><i class="fas fa-user-check"></i> Student Registration</a></li>
+            <li><a href="#" class="tab-link" data-tab="voting-form"><i class="fas fa-vote-yea"></i> Voting Booth</a></li>
+            <li><a href="#" class="tab-link" data-tab="results-section"><i class="fas fa-chart-bar"></i> Live Results</a></li>
+            <li><a href="#" class="tab-link" onclick="logoutAdmin()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a href="#" class="tab-link" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Theme</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Voting Portal</h1>
+        
+        <div id="admin-login-section" class="section voter-login">
+            <h2>Admin Login</h2>
+            <p style="margin-bottom: 20px; opacity: 0.9;">Election administrators only - Login to operate voting station</p>
+            <input type="text" id="admin-username" placeholder="Admin Username">
+            <input type="password" id="admin-password" placeholder="Admin Password">
+            <button onclick="loginAdmin()">Login as Admin</button>
+            <p id="admin-login-error" class="error"></p>
+        </div>
+
+        <div id="voter-section" class="section" style="display: none;">
+            <h2>Student Voter Registration</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">Help the student enter their details to vote</p>
+            <input type="text" id="voter-reg" placeholder="Student Registration Number">
+            <input type="text" id="voter-program" placeholder="Program of Study (e.g., Computer Science)">
+            <button onclick="startVoting()">Start Voting Process</button>
+            <button onclick="resetVoterForm()" style="background: #6c757d; margin-top: 10px;">Reset Form</button>
+            <p id="voter-error" class="error"></p>
+        </div>
+
+        <div id="voting-form" class="section" style="display: none;">
+            <h2>Voting Booth</h2>
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+                <p id="current-voter-info" style="margin: 0; color: #155724; font-weight: 500;">
+                    <i class="fas fa-user"></i> Current Voter: <span id="current-voter-details">None</span>
+                </p>
+            </div>
+            <p id="deadline-info"></p>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 0%;"></div>
+            </div>
+            <p id="live-vote-count">Total votes cast today: 0</p>
+            <div id="candidates-list"></div>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button onclick="openConfirmModal()" style="background: #28a745;"><i class="fas fa-check"></i> Submit Vote</button>
+                <button onclick="cancelVoting()" style="background: #dc3545;"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+            <p id="vote-error" class="error"></p>
+        </div>
+
+        <div id="results-section" class="section" style="display: none;">
+            <h2>Voting Statistics</h2>
+            <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">Total Voters: <span id="total-voters">0</span></p>
+            <div id="results"></div>
+        </div>
+
+        <div id="confirm-modal" class="modal">
+            <div class="modal-content">
+                <h3>Confirm Vote</h3>
+                <p>Are you sure you want to submit your vote? This action cannot be undone.</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button onclick="submitVote()" style="background: #28a745;">Confirm</button>
+                    <button onclick="closeConfirmModal()" style="background: #6c757d;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Storage keys with unique prefix to match managing portal
+        const STORAGE_KEYS = {
+            directors: 'managingPortal_electionDirectors',
+            voters: 'managingPortal_onlineVoters',
+            candidates: 'managingPortal_candidates',
+            deadline: 'managingPortal_votingDeadline',
+            physicalVotes: 'managingPortal_physicalVotes'
+        };
+
+        // Navigation and theme toggle
+        const navToggle = document.querySelector('.nav-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        const tabLinks = document.querySelectorAll('.tab-link');
+        const sections = document.querySelectorAll('.section');
+        const modal = document.getElementById('confirm-modal');
+
+        let currentAdmin = null;
+        let currentVoterInfo = null;
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+
+        tabLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#') {
+                    // For links to other pages, allow default behavior
+                    return;
+                }
+                
+                e.preventDefault();
+                if (link.getAttribute('onclick')) return; // Skip for logout/theme
+                const tabId = link.getAttribute('data-tab');
+
+                sections.forEach(section => section.style.display = 'none');
+                tabLinks.forEach(l => l.classList.remove('active'));
+                document.getElementById(tabId).style.display = 'block';
+                link.classList.add('active');
+                navMenu.classList.remove('active');
+
+                if (tabId === 'results-section') {
+                    updateStats();
+                } else if (tabId === 'voting-form') {
+                    updateProgressBar();
+                }
+            });
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('votingPortal_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            navMenu.classList.remove('active');
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('votingPortal_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        function loginAdmin() {
+            const username = document.getElementById('admin-username').value.trim();
+            const password = document.getElementById('admin-password').value.trim();
+            const loginError = document.getElementById('admin-login-error');
+
+            if (!username || !password) {
+                loginError.textContent = 'Please enter both username and password';
+                loginError.style.opacity = '1';
+                return;
+            }
+
+            const directors = JSON.parse(localStorage.getItem(STORAGE_KEYS.directors) || '[]');
+            const admin = directors.find(d => d.username === username && d.password === password);
+
+            if (admin) {
+                currentAdmin = admin.username;
+                loginError.style.opacity = '0';
+                
+                // Show admin interface
+                sections.forEach(section => section.style.display = 'none');
+                document.getElementById('voter-section').style.display = 'block';
+                tabLinks.forEach(link => link.classList.remove('active'));
+                document.querySelector('.tab-link[data-tab="voter-section"]').classList.add('active');
+                navMenu.style.display = 'block';
+                navToggle.style.display = 'block';
+                
+                checkDeadline();
+                updateLiveVoteCount();
+                alert(`Admin login successful! Welcome, ${currentAdmin}.`);
+            } else {
+                loginError.textContent = 'Invalid admin credentials';
+                loginError.style.opacity = '1';
+            }
+        }
+
+        function logoutAdmin() {
+            currentAdmin = null;
+            currentVoterInfo = null;
+            
+            // Hide all sections except login
+            sections.forEach(section => section.style.display = 'none');
+            document.getElementById('admin-login-section').style.display = 'block';
+            tabLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector('.tab-link[data-tab="admin-login-section"]').classList.add('active');
+            navMenu.style.display = 'none';
+            navToggle.style.display = 'none';
+            navMenu.classList.remove('active');
+            
+            // Clear forms
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('voter-reg').value = '';
+            document.getElementById('voter-program').value = '';
+            document.getElementById('current-voter-details').textContent = 'None';
+            
+            // Clear errors
+            document.querySelectorAll('.error').forEach(el => el.style.opacity = '0');
+        }
+
+        function startVoting() {
+            const regNumber = document.getElementById('voter-reg').value.trim();
+            const program = document.getElementById('voter-program').value.trim();
+            const voterError = document.getElementById('voter-error');
+
+            if (!regNumber || !program) {
+                voterError.textContent = 'Please enter both registration number and program of study';
+                voterError.style.opacity = '1';
+                return;
+            }
+
+            // Check against the master list of voters
+            const registeredVoters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const existingVoter = registeredVoters.find(v => v.username === regNumber);
+
+            if (existingVoter && existingVoter.hasVoted) {
+                voterError.textContent = 'This student has already voted.';
+                voterError.style.opacity = '1';
+                return;
+            }
+            
+            // If voter is new, add them to the master list
+            if (!existingVoter) {
+                registeredVoters.push({
+                    username: regNumber,
+                    password: 'N/A', 
+                    hasVoted: false,
+                    registeredAt: new Date().toISOString()
+                });
+                localStorage.setItem(STORAGE_KEYS.voters, JSON.stringify(registeredVoters));
+            }
+
+            currentVoterInfo = { regNumber, program };
+            voterError.style.opacity = '0';
+            
+            // Show voting interface
+            sections.forEach(section => section.style.display = 'none');
+            document.getElementById('voting-form').style.display = 'block';
+            tabLinks.forEach(link => link.classList.remove('active'));
+            document.querySelector('.tab-link[data-tab="voting-form"]').classList.add('active');
+            
+            // Update current voter display
+            document.getElementById('current-voter-details').textContent = `${regNumber} (${program})`;
+            
+            loadCandidates();
+            updateProgressBar();
+        }
+
+        function resetVoterForm() {
+            document.getElementById('voter-reg').value = '';
+            document.getElementById('voter-program').value = '';
+            document.getElementById('voter-error').style.opacity = '0';
+        }
+
+        function cancelVoting() {
+            if (confirm('Are you sure you want to cancel this voting session?')) {
+                currentVoterInfo = null;
+                sections.forEach(section => section.style.display = 'none');
+                document.getElementById('voter-section').style.display = 'block';
+                tabLinks.forEach(link => link.classList.remove('active'));
+                document.querySelector('.tab-link[data-tab="voter-section"]').classList.add('active');
+                
+                // Clear voter form
+                resetVoterForm();
+                document.getElementById('current-voter-details').textContent = 'None';
+            }
+        }
+
+        function checkDeadline() {
+            const deadline = localStorage.getItem(STORAGE_KEYS.deadline);
+            const deadlineInfo = document.getElementById('deadline-info');
+            if (deadline) {
+                const now = new Date();
+                const deadlineDate = new Date(deadline);
+                if (now > deadlineDate) {
+                    deadlineInfo.innerHTML = '<span class="error"><i class="fas fa-exclamation-triangle"></i> Voting has ended!</span>';
+                } else {
+                    deadlineInfo.innerHTML = `<i class="fas fa-clock"></i> Voting ends: ${deadlineDate.toLocaleString()}`;
+                    deadlineInfo.style.color = '#28a745';
+                }
+            } else {
+                deadlineInfo.innerHTML = '<i class="fas fa-info-circle"></i> No deadline set - Contact election director';
+                deadlineInfo.style.color = '#ffc107';
+            }
+            updateLiveVoteCount();
+        }
+
+        function loadCandidates() {
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const candidatesList = document.getElementById('candidates-list');
+            candidatesList.innerHTML = '';
+
+            if (candidates.length === 0) {
+                candidatesList.innerHTML = '<p style="text-align: center; color: #666;">No candidates available at this time.</p>';
+                return;
+            }
+
+            const positions = [...new Set(candidates.map(c => c.position))];
+            positions.forEach(position => {
+                const positionDiv = document.createElement('div');
+                positionDiv.innerHTML = `<h3 style="margin: 30px 0 20px 0; color: var(--primary-dark);">${position}</h3>`;
+                candidates
+                    .filter(c => c.position === position)
+                    .forEach(candidate => {
+                        const candidateDiv = document.createElement('div');
+                        candidateDiv.className = 'candidate';
+                        candidateDiv.innerHTML = `
+                            <img src="${candidate.photo}" alt="${candidate.name}">
+                            <div style="flex-grow: 1;">
+                                <p style="margin-bottom: 10px;"><strong>Name:</strong> ${candidate.name}</p>
+                                <p style="margin-bottom: 15px;"><strong>Position:</strong> ${candidate.position}</p>
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="radio" name="${position}" value="${candidate.name}" onchange="updateProgressBar()" style="margin: 0; width: auto;">
+                                    <i class="fas fa-check-circle" style="color: var(--accent);"></i> 
+                                    <span style="font-weight: 600;">Vote for this candidate</span>
+                                </label>
+                            </div>
+                        `;
+                        positionDiv.appendChild(candidateDiv);
+                    });
+                candidatesList.appendChild(positionDiv);
+            });
+            updateLiveVoteCount();
+        }
+
+        function updateProgressBar() {
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const positions = [...new Set(candidates.map(c => c.position))];
+            if (positions.length === 0) return;
+            
+            const selected = positions.filter(position => document.querySelector(`input[name="${position}"]:checked`)).length;
+            const progress = (selected / positions.length) * 100;
+            document.querySelector('.progress-bar-fill').style.width = `${progress}%`;
+        }
+
+        function updateLiveVoteCount() {
+            const voters = JSON.parse(localStorage.getItem(STORAGE_KEYS.physicalVotes) || '[]');
+            document.getElementById('live-vote-count').textContent = `Total votes cast today: ${voters.length}`;
+        }
+
+        function openConfirmModal() {
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const positions = [...new Set(candidates.map(c => c.position))];
+            let allSelected = true;
+            
+            positions.forEach(position => {
+                if (!document.querySelector(`input[name="${position}"]:checked`)) {
+                    allSelected = false;
+                    document.getElementById('vote-error').textContent = `Please select a candidate for ${position}`;
+                    document.getElementById('vote-error').style.opacity = '1';
+                }
+            });
+            
+            if (allSelected) {
+                document.getElementById('vote-error').style.opacity = '0';
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeConfirmModal() {
+            modal.style.display = 'none';
+            document.getElementById('vote-error').style.opacity = '0';
+        }
+
+        function submitVote() {
+            if (!currentVoterInfo) {
+                alert('Error: No voter information found. Please start over.');
+                return;
+            }
+
+            const { regNumber, program } = currentVoterInfo;
+            const deadline = localStorage.getItem(STORAGE_KEYS.deadline);
+            const now = new Date();
+            const voteError = document.getElementById('vote-error');
+
+            if (deadline && now > new Date(deadline)) {
+                voteError.textContent = 'Voting has ended - cannot submit vote';
+                voteError.style.opacity = '1';
+                modal.style.display = 'none';
+                return;
+            }
+
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const positions = [...new Set(candidates.map(c => c.position))];
+            const votes = {};
+
+            let allSelected = true;
+            positions.forEach(position => {
+                const selected = document.querySelector(`input[name="${position}"]:checked`);
+                if (!selected) {
+                    allSelected = false;
+                    voteError.textContent = `Please select a candidate for ${position}`;
+                    voteError.style.opacity = '1';
+                    return;
+                }
+                votes[position] = selected.value;
+            });
+
+            if (!allSelected) {
+                modal.style.display = 'none';
+                return;
+            }
+
+            // Save vote for physical voting
+            const existingVotes = JSON.parse(localStorage.getItem(STORAGE_KEYS.physicalVotes) || '[]');
+            existingVotes.push({ 
+                regNumber, 
+                program, 
+                votes,
+                votedAt: new Date().toISOString(),
+                voteType: 'physical', // Mark as physical voting
+                adminOperator: currentAdmin
+            });
+            localStorage.setItem(STORAGE_KEYS.physicalVotes, JSON.stringify(existingVotes));
+            
+            // Mark voter as voted in the master list
+            const allVoters = JSON.parse(localStorage.getItem(STORAGE_KEYS.voters) || '[]');
+            const voterToUpdate = allVoters.find(v => v.username === regNumber);
+            if (voterToUpdate) {
+                voterToUpdate.hasVoted = true;
+                localStorage.setItem(STORAGE_KEYS.voters, JSON.stringify(allVoters));
+            }
+
+            voteError.className = 'success';
+            voteError.textContent = 'Vote submitted successfully! Ready for next voter.';
+            voteError.style.opacity = '1';
+            modal.style.display = 'none';
+            updateLiveVoteCount();
+
+            setTimeout(() => {
+                // Return to voter registration for next voter
+                currentVoterInfo = null;
+                sections.forEach(section => section.style.display = 'none');
+                document.getElementById('voter-section').style.display = 'block';
+                tabLinks.forEach(link => link.classList.remove('active'));
+                document.querySelector('.tab-link[data-tab="voter-section"]').classList.add('active');
+                
+                // Clear forms for next voter
+                resetVoterForm();
+                document.getElementById('current-voter-details').textContent = 'None';
+                
+                voteError.textContent = '';
+                voteError.className = 'error';
+                voteError.style.opacity = '0';
+            }, 2000);
+        }
+
+        function updateStats() {
+            const voters = JSON.parse(localStorage.getItem(STORAGE_KEYS.physicalVotes) || '[]');
+            const candidates = JSON.parse(localStorage.getItem(STORAGE_KEYS.candidates) || '[]');
+            const resultsDiv = document.getElementById('results');
+            document.getElementById('total-voters').textContent = voters.length;
+
+            if (candidates.length === 0) {
+                resultsDiv.innerHTML = '<p style="text-align: center; color: #666;">No candidates available for results.</p>';
+                return;
+            }
+
+            const positions = [...new Set(candidates.map(c => c.position))];
+            resultsDiv.innerHTML = '';
+
+            positions.forEach(position => {
+                const positionDiv = document.createElement('div');
+                positionDiv.style.marginBottom = '30px';
+                positionDiv.innerHTML = `<h3 style="margin-bottom: 15px;">${position}</h3>`;
+                const voteCounts = {};
+
+                candidates
+                    .filter(c => c.position === position)
+                    .forEach(c => { voteCounts[c.name] = 0; });
+
+                voters.forEach(voter => {
+                    if (voter.votes && voter.votes[position]) {
+                        voteCounts[voter.votes[position]] = (voteCounts[voter.votes[position]] || 0) + 1;
+                    }
+                });
+
+                for (const candidate in voteCounts) {
+                    const percentage = voters.length > 0 ? ((voteCounts[candidate] / voters.length) * 100).toFixed(1) : 0;
+                    positionDiv.innerHTML += `<p style="margin: 5px 0; padding: 5px; background: rgba(59, 89, 152, 0.1); border-radius: 4px;">${candidate}: ${voteCounts[candidate]} votes (${percentage}%)</p>`;
+                }
+
+                resultsDiv.appendChild(positionDiv);
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show admin login section by default
+            sections.forEach(section => section.style.display = 'none');
+            document.getElementById('admin-login-section').style.display = 'block';
+            
+            // Initialize error displays
+            document.querySelectorAll('.error, .success').forEach(el => {
+                el.style.opacity = '0';
+            });
+
+            // Hide navigation initially
+            navMenu.style.display = 'none';
+            navToggle.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
